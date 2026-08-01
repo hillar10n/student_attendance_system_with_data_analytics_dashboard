@@ -1,0 +1,19 @@
+# Frontend build artifacts and dependencies (regenerated via npm install / npm run build)
+frontend/node_modules/
+frontend/dist/
+
+# Environment overrides (may contain deployment-specific paths/secrets - see README)
+.env
+.env.local
+frontend/.env
+frontend/.env.local
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*

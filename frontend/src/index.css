@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Deep ink-blue as the institutional anchor color, not a cliché navy */
+  --color-ink-50: #f4f6fb;
+  --color-ink-100: #e6eaf5;
+  --color-ink-200: #c7d0e6;
+  --color-ink-400: #5b6e9c;
+  --color-ink-600: #2f3f66;
+  --color-ink-700: #232f4e;
+  --color-ink-800: #1a2339;
+  --color-ink-900: #121729;
+
+  /* Muted gold accent - institutional, not terracotta/purple cliche */
+  --color-gold-400: #c99a3f;
+  --color-gold-500: #b3822a;
+  --color-gold-600: #96691e;
+
+  --color-good-500: #0f7a63;
+  --color-good-600: #0b5c4b;
+  --color-good-100: #dcf3ec;
+  --color-warn-500: #b3691e;
+  --color-warn-600: #8f5417;
+  --color-warn-100: #f6e6d2;
+  --color-bad-500: #b3312a;
+  --color-bad-600: #8f2721;
+  --color-bad-100: #f6dcd9;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-ink-50);
+  color: var(--color-ink-900);
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+::selection {
+  background: var(--color-gold-400);
+  color: white;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-500);
+  outline-offset: 2px;
+}

@@ -1,0 +1,22 @@
+# Single-Page Application (SPA) routing support for Apache/XAMPP.
+#
+# Without this, only the homepage (/) works. Navigating directly to, or
+# refreshing, any other route (e.g. /login, /admin, /lecturer/analytics)
+# returns a 404, because Apache looks for a real file at that path -
+# it doesn't know these are React Router routes handled client-side.
+#
+# This rewrites every request that isn't a real file or folder back to
+# index.html, letting React Router take over from there.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /sams/
+
+  # If the request is for a real file or directory, serve it as-is.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Otherwise, hand off to index.html so React Router can route it.
+  RewriteRule ^ index.html [L]
+</IfModule>
