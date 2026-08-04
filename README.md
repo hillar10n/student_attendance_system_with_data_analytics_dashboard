@@ -72,9 +72,9 @@ Visit `http://localhost/sams/`.
 
 | Role      | Email                          | Password       |
 |-----------|---------------------------------|----------------|
-| Admin     | admin@sams.test                 | Password123!   |
-| Lecturer  | j.whitfield@sams.test            | Password123!   |
-| Student   | a.bello@student.sams.test        | Password123!   |
+| Admin     | zara@northumbria.ac.uk          | password123!   |
+| Lecturer  | ning.tse@northumbria.co.uk      | Password123!   |
+| Lecturer  | shirazi@northumbria.ac.uk       | shirazi@26     |
 | Student (deliberately at-risk, ~33% attendance) | c.okoye@student.sams.test | Password123! |
 
 ## Troubleshooting
