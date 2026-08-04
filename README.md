@@ -138,16 +138,3 @@ npm run dev
 - FR10/FR11 Biometric auth / native mobile app — **not implemented** (Won't Have, Section 1.6)
 - Student and course roster management (add/remove students, add/remove course
   enrolments) via Admin → Users / Roster pages
-
-## Known limitations (see also Chapter 8 of the dissertation)
-
-- PDF export uses a small hand-written PDF generator (no external library
-  was available in the build environment) — functional but plain-text only.
-- No automated test suite; testing was done manually via curl and Playwright
-  browser automation during development (see Chapter 7).
-- Email delivery for password reset is not configured.
-- `npm audit` flags a high-severity advisory in `react-router` scoped to
-  "RSC Mode" (React Server Components) — a feature this app does not use
-  anywhere (plain client-side `BrowserRouter`). The only available fix is a
-  breaking downgrade, which was not applied since the vulnerable code path
-  isn't reachable in this codebase.
