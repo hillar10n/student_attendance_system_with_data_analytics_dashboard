@@ -20,6 +20,12 @@ export default function Courses() {
   const [pendingDelete, setPendingDelete] = useState<Course | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+  // Editing (reassigning lecturer / renaming) an existing course
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ courseName: '', courseCode: '', lecturerId: '' });
+  const [editError, setEditError] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+
   function loadCourses() {
     setLoading(true);
     api.get<{ courses: Course[] }>('/courses/list.php').then((res) => setCourses(res.courses)).finally(() => setLoading(false));
@@ -67,6 +73,34 @@ export default function Courses() {
       toast.show(err instanceof ApiError ? err.message : 'Could not delete this course.', 'error');
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  function startEdit(c: Course) {
+    setEditForm({ courseName: c.name, courseCode: c.code, lecturerId: String(c.lecturerId) });
+    setEditError(null);
+    setEditingId(c.id);
+  }
+
+  async function handleSaveEdit(e: FormEvent) {
+    e.preventDefault();
+    if (!editingId) return;
+    setEditError(null);
+    setSavingEdit(true);
+    try {
+      await api.post('/courses/update.php', {
+        courseId: editingId,
+        courseName: editForm.courseName,
+        courseCode: editForm.courseCode,
+        lecturerId: Number(editForm.lecturerId),
+      });
+      toast.show('Course updated.', 'success');
+      setEditingId(null);
+      loadCourses();
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.message : 'Something went wrong.');
+    } finally {
+      setSavingEdit(false);
     }
   }
 
@@ -170,27 +204,96 @@ export default function Courses() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0, x: -12 }}
                     transition={{ duration: 0.22 }}
-                    className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
+                    className="py-3"
                   >
-                    <div>
-                      <p className="font-medium text-ink-800">{c.name}</p>
-                      <p className="text-ink-400">{c.code} · led by {c.lecturerName} · {c.studentCount} students</p>
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                      <div>
+                        <p className="font-medium text-ink-800">{c.name}</p>
+                        <p className="text-ink-400">{c.code} · led by {c.lecturerName} · {c.studentCount} students</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Link to={`/lecturer/analytics?courseId=${c.id}`} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-100 active:scale-95">
+                          View analytics
+                        </Link>
+                        <Link to={`/admin/roster?courseId=${c.id}`} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-100 active:scale-95">
+                          Manage roster
+                        </Link>
+                        <button
+                          onClick={() => (editingId === c.id ? setEditingId(null) : startEdit(c))}
+                          className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-100 active:scale-95"
+                        >
+                          {editingId === c.id ? 'Close' : 'Edit'}
+                        </button>
+                        <button
+                          onClick={() => setPendingDelete(c)}
+                          disabled={deletingId === c.id}
+                          className="rounded-lg border border-bad-500/30 px-3 py-1.5 text-xs font-medium text-bad-500 transition hover:bg-bad-100 active:scale-95 disabled:opacity-50"
+                        >
+                          {deletingId === c.id ? 'Deleting…' : 'Delete'}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Link to={`/lecturer/analytics?courseId=${c.id}`} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-100 active:scale-95">
-                        View analytics
-                      </Link>
-                      <Link to={`/admin/roster?courseId=${c.id}`} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-100 active:scale-95">
-                        Manage roster
-                      </Link>
-                      <button
-                        onClick={() => setPendingDelete(c)}
-                        disabled={deletingId === c.id}
-                        className="rounded-lg border border-bad-500/30 px-3 py-1.5 text-xs font-medium text-bad-500 transition hover:bg-bad-100 active:scale-95 disabled:opacity-50"
-                      >
-                        {deletingId === c.id ? 'Deleting…' : 'Delete'}
-                      </button>
-                    </div>
+
+                    <AnimatePresence>
+                      {editingId === c.id && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <form onSubmit={handleSaveEdit} className="mt-3 grid grid-cols-1 gap-3 rounded-lg bg-ink-50 p-4 sm:grid-cols-4">
+                            {editError && (
+                              <div role="alert" className="sm:col-span-4 rounded-lg border border-bad-500/30 bg-bad-100 px-3 py-2 text-sm text-bad-500">
+                                {editError}
+                              </div>
+                            )}
+                            <div>
+                              <label className="block text-xs font-medium text-ink-700">Course name</label>
+                              <input
+                                required
+                                value={editForm.courseName}
+                                onChange={(e) => setEditForm({ ...editForm, courseName: e.target.value })}
+                                className="mt-1 w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-sm focus:border-ink-600 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-ink-700">Course code</label>
+                              <input
+                                required
+                                value={editForm.courseCode}
+                                onChange={(e) => setEditForm({ ...editForm, courseCode: e.target.value })}
+                                className="mt-1 w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-sm focus:border-ink-600 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-ink-700">Lecturer</label>
+                              <select
+                                required
+                                value={editForm.lecturerId}
+                                onChange={(e) => setEditForm({ ...editForm, lecturerId: e.target.value })}
+                                className="mt-1 w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-sm focus:border-ink-600 focus:outline-none"
+                              >
+                                {lecturers.map((l) => (
+                                  <option key={l.id} value={l.id}>{l.fullName}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="flex items-end">
+                              <motion.button
+                                whileTap={{ scale: 0.96 }}
+                                type="submit"
+                                disabled={savingEdit}
+                                className="w-full rounded-lg bg-ink-700 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-ink-800 disabled:opacity-60"
+                              >
+                                {savingEdit ? 'Saving…' : 'Save changes'}
+                              </motion.button>
+                            </div>
+                          </form>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 ))}
               </AnimatePresence>

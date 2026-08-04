@@ -15,6 +15,7 @@ export interface Course {
   id: number;
   name: string;
   code: string;
+  lecturerId: number;
   lecturerName: string;
   studentCount: number | null;
 }

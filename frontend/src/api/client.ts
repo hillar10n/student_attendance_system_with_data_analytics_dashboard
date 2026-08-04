@@ -9,47 +9,52 @@
 // name (htdocs/sams-api/). If you deploy the backend under a different
 // folder name, create a `.env` file in `frontend/` containing
 // `VITE_API_BASE=/your-folder-name/api` before running the build.
-const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? '/sams-api/api' : '/api');
+const API_BASE =
+	import.meta.env.VITE_API_BASE ||
+	(import.meta.env.PROD ? "/sams-api/api" : "/api");
 
 export class ApiError extends Error {
-  status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.status = status;
-  }
+	status: number;
+	constructor(message: string, status: number) {
+		super(message);
+		this.status = status;
+	}
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-    ...options,
-  });
+	const res = await fetch(`${API_BASE}${path}`, {
+		credentials: "include",
+		headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+		...options,
+	});
 
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`;
-    try {
-      const body = await res.json();
-      if (body?.error) message = body.error;
-    } catch {
-      /* response wasn't JSON - keep default message */
-    }
-    throw new ApiError(message, res.status);
-  }
+	if (!res.ok) {
+		let message = `Request failed (${res.status})`;
+		try {
+			const body = await res.json();
+			if (body?.error) message = body.error;
+		} catch {
+			/* response wasn't JSON - keep default message */
+		}
+		throw new ApiError(message, res.status);
+	}
 
-  if (res.headers.get('content-type')?.includes('application/json')) {
-    return res.json() as Promise<T>;
-  }
-  return undefined as T;
+	if (res.headers.get("content-type")?.includes("application/json")) {
+		return res.json() as Promise<T>;
+	}
+	return undefined as T;
 }
 
 export const api = {
-  get: <T,>(path: string) => request<T>(path, { method: 'GET' }),
-  post: <T,>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+	get: <T>(path: string) => request<T>(path, { method: "GET" }),
+	post: <T>(path: string, body?: unknown) =>
+		request<T>(path, {
+			method: "POST",
+			body: body ? JSON.stringify(body) : undefined,
+		}),
 };
 
 /** Builds a same-origin download URL (used for <a href> report exports, not fetch). */
 export function downloadUrl(path: string): string {
-  return `${API_BASE}${path}`;
+	return `${API_BASE}${path}`;
 }
