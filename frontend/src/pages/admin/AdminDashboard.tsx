@@ -33,7 +33,7 @@ export default function AdminDashboard() {
 				Admin overview
 			</h1>
 			<p className="mt-1 text-sm text-ink-400">
-				System-wide summary across all courses and users.
+				System summary across all courses and students.
 			</p>
 
 			{loading ? (
