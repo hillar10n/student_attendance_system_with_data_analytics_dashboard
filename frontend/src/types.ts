@@ -35,8 +35,8 @@ export interface SessionRoster {
 }
 
 export interface TrendPoint {
-  week: string;
-  rate: number;
+  date: string;
+  rate: number | null;
 }
 
 export interface StudentSummary {

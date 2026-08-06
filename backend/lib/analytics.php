@@ -6,6 +6,55 @@
 const NOTIFICATION_THRESHOLD = 75.0; // percent, configurable per FR05
 
 /**
+ * Given attendance aggregated by raw date ('Y-m-d' => ['present'=>int,
+ * 'total'=>int]), returns one entry per weekday (Monday-Friday only,
+ * weekends excluded) across the given range, labelled with day name +
+ * date (e.g. "Mon 3 Aug") so gaps in the teaching week are visible
+ * rather than silently skipped. A day with no session recorded gets
+ * 'rate' => null (rendered as an empty gap on the chart) rather than a
+ * misleading 0%, since 0% would imply a session happened and every
+ * student was absent, which is a different thing entirely.
+ *
+ * Range resolution: uses $from/$to if both given; otherwise spans from
+ * the earliest to latest date actually present in $dailyAgg (snapped
+ * out to the Monday of that first week and Friday of that last week);
+ * if there is no data and no explicit range, defaults to the current
+ * calendar week.
+ */
+function fill_weekday_trend(array $dailyAgg, ?string $from, ?string $to): array {
+    if ($from && $to) {
+        $start = new DateTime($from);
+        $end = new DateTime($to);
+    } else {
+        $dates = array_keys($dailyAgg);
+        if (empty($dates)) {
+            $start = new DateTime('monday this week');
+            $end = new DateTime('friday this week');
+        } else {
+            sort($dates);
+            $start = (new DateTime(reset($dates)))->modify('monday this week');
+            $end = (new DateTime(end($dates)))->modify('friday this week');
+        }
+    }
+
+    $out = [];
+    $cursor = clone $start;
+    while ($cursor <= $end) {
+        $dow = (int) $cursor->format('N'); // ISO-8601: 1=Monday ... 7=Sunday
+        if ($dow <= 5) {
+            $key = $cursor->format('Y-m-d');
+            $label = $cursor->format('D j M'); // e.g. "Mon 3 Aug"
+            $rate = (isset($dailyAgg[$key]) && $dailyAgg[$key]['total'] > 0)
+                ? round(($dailyAgg[$key]['present'] / $dailyAgg[$key]['total']) * 100, 1)
+                : null;
+            $out[] = ['date' => $label, 'rate' => $rate];
+        }
+        $cursor->modify('+1 day');
+    }
+    return $out;
+}
+
+/**
  * Returns attendance rate (0-100) and status breakdown for one
  * student on one course, across an optional date range.
  */
@@ -30,20 +79,17 @@ function get_student_course_summary(PDO $pdo, int $studentId, int $courseId, ?st
     $absent = count(array_filter($records, fn($r) => $r['status'] === 'absent'));
     $rate = $total > 0 ? round(($present / $total) * 100, 1) : 0.0;
 
-    // Weekly trend: group by ISO week (fixes the cross-month aggregation
-    // defect described in Section 6.3, Challenge 3 - grouping by ISO week
-    // rather than calendar-day modulo arithmetic).
-    $trend = [];
+    // Daily trend, filled out to a full Monday-Friday teaching week (see
+    // fill_weekday_trend) so gaps in the schedule are visible rather than
+    // silently skipped, and each point is labelled with day name + date.
+    $dailyAgg = [];
     foreach ($records as $r) {
-        $week = date('o-\WW', strtotime($r['session_date']));
-        if (!isset($trend[$week])) $trend[$week] = ['week' => $week, 'present' => 0, 'total' => 0];
-        $trend[$week]['total']++;
-        if ($r['status'] === 'present') $trend[$week]['present']++;
+        $key = date('Y-m-d', strtotime($r['session_date']));
+        if (!isset($dailyAgg[$key])) $dailyAgg[$key] = ['present' => 0, 'total' => 0];
+        $dailyAgg[$key]['total']++;
+        if ($r['status'] === 'present') $dailyAgg[$key]['present']++;
     }
-    $trendOut = array_values(array_map(fn($t) => [
-        'week' => $t['week'],
-        'rate' => $t['total'] > 0 ? round(($t['present'] / $t['total']) * 100, 1) : 0.0,
-    ], $trend));
+    $trendOut = fill_weekday_trend($dailyAgg, $from, $to);
 
     return [
         'attendanceRate' => $rate,

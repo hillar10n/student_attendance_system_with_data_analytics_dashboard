@@ -7,11 +7,20 @@ import {
 	CartesianGrid,
 	Tooltip,
 	ResponsiveContainer,
+	Cell,
 } from "recharts";
 import Layout from "../../components/Layout";
 import { Card, StatCard } from "../../components/Card";
 import { api } from "../../api/client";
 import type { StudentCourseHistory } from "../../types";
+
+// Same colour language as the lecturer Analytics page: green/amber/red by value.
+function trendBarColor(rate: number | null): string {
+	if (rate === null) return "#d7dbe6";
+	if (rate >= 85) return "#0f7a63";
+	if (rate >= 60) return "#b3691e";
+	return "#b3312a";
+}
 
 export default function StudentDashboard() {
 	const [courses, setCourses] = useState<StudentCourseHistory[]>([]);
@@ -36,7 +45,7 @@ export default function StudentDashboard() {
 	return (
 		<Layout>
 			<h1 className="font-display text-2xl font-semibold text-ink-800">
-				Your attendance
+				Your attendance metrics
 			</h1>
 			<p className="mt-1 text-sm text-ink-400">
 				A view across all your enrolled courses.
@@ -81,14 +90,26 @@ export default function StudentDashboard() {
 									<ResponsiveContainer width="100%" height={180}>
 										<BarChart data={c.summary.trend}>
 											<CartesianGrid strokeDasharray="3 3" stroke="#e6eaf5" />
-											<XAxis dataKey="week" tick={{ fontSize: 10 }} />
-											<YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
-											<Tooltip formatter={(v) => [`${v}%`, "Attendance"]} />
-											<Bar
-												dataKey="rate"
-												fill="#2f3f66"
-												radius={[3, 3, 0, 0]}
+											<XAxis
+												dataKey="date"
+												tick={{ fontSize: 9 }}
+												angle={-35}
+												textAnchor="end"
+												height={45}
 											/>
+											<YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+											<Tooltip
+												formatter={(v) =>
+													v === null
+														? ["No session recorded", ""]
+														: [`${v}%`, "Attendance"]
+												}
+											/>
+											<Bar dataKey="rate" radius={[3, 3, 0, 0]}>
+												{c.summary.trend.map((point, i) => (
+													<Cell key={i} fill={trendBarColor(point.rate)} />
+												))}
+											</Bar>
 										</BarChart>
 									</ResponsiveContainer>
 								</div>

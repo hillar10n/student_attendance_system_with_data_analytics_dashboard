@@ -24,7 +24,6 @@ $students = $studentsStmt->fetchAll();
 
 $perStudent = [];
 $atRisk = [];
-$courseTrendAgg = []; // week => [present, total]
 
 foreach ($students as $s) {
     $summary = get_student_course_summary($pdo, (int) $s['user_id'], $courseId, $from, $to);
@@ -40,9 +39,6 @@ foreach ($students as $s) {
     if ($summary['total'] >= 3 && $summary['attendanceRate'] <= NOTIFICATION_THRESHOLD) {
         $atRisk[] = ['studentId' => (int) $s['user_id'], 'studentName' => $s['full_name'], 'attendanceRate' => $summary['attendanceRate']];
     }
-    foreach ($summary['trend'] as $t) {
-        if (!isset($courseTrendAgg[$t['week']])) $courseTrendAgg[$t['week']] = ['present' => 0, 'total' => 0];
-    }
 }
 
 // Course-wide trend: recompute directly (simpler + avoids double counting).
@@ -55,17 +51,14 @@ $trendStmt = $pdo->prepare(
 );
 $trendStmt->execute([$courseId]);
 $trendRows = $trendStmt->fetchAll();
-$weekAgg = [];
+$dayAgg = [];
 foreach ($trendRows as $r) {
-    $week = date('o-\WW', strtotime($r['session_date']));
-    if (!isset($weekAgg[$week])) $weekAgg[$week] = ['present' => 0, 'total' => 0];
-    $weekAgg[$week]['total']++;
-    if ($r['status'] === 'present') $weekAgg[$week]['present']++;
+    $key = date('Y-m-d', strtotime($r['session_date']));
+    if (!isset($dayAgg[$key])) $dayAgg[$key] = ['present' => 0, 'total' => 0];
+    $dayAgg[$key]['total']++;
+    if ($r['status'] === 'present') $dayAgg[$key]['present']++;
 }
-$courseTrend = array_map(
-    fn($week, $v) => ['week' => $week, 'rate' => $v['total'] > 0 ? round(($v['present'] / $v['total']) * 100, 1) : 0],
-    array_keys($weekAgg), array_values($weekAgg)
-);
+$courseTrend = fill_weekday_trend($dayAgg, $from, $to);
 
 $overallRate = count($perStudent) > 0
     ? round(array_sum(array_column($perStudent, 'attendanceRate')) / count($perStudent), 1)
