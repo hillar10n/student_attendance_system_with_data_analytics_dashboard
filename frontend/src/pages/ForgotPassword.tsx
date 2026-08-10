@@ -30,7 +30,7 @@ export default function ForgotPassword() {
 					Reset your password
 				</h1>
 				<p className="mt-1 text-sm text-ink-400">
-					Enter your email and we'll generate a reset link.
+					Enter your email and link will be generate and send to your email.
 				</p>
 
 				{message ? (
@@ -41,8 +41,7 @@ export default function ForgotPassword() {
 								to={`/reset-password?token=${devToken}`}
 								className="mt-2 block underline"
 							>
-								Continue to reset password (dev link — no email service
-								configured)
+								Continue to reset password (no email service configured)
 							</Link>
 						)}
 					</div>
