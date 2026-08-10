@@ -59,7 +59,7 @@ export default function Login() {
 						Sign in
 					</h1>
 					<p className="mt-1 text-sm text-ink-400">
-						Use your institutional account.
+						Use your institutional details.
 					</p>
 
 					<AnimatePresence>
@@ -90,7 +90,7 @@ export default function Login() {
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						className="mt-1 w-full rounded-lg border border-ink-200 px-3 py-2 text-sm transition focus:border-ink-600 focus:outline-none focus:ring-2 focus:ring-ink-600/10"
-						placeholder="you@institution.ac.uk"
+						placeholder="yourname@institution.ac.uk"
 					/>
 
 					<label
