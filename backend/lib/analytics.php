@@ -3,7 +3,7 @@
 // pre-computed summary table - see Section 6.2.2 for the trade-off
 // discussion). Rates are computed fresh on every call.
 
-const NOTIFICATION_THRESHOLD = 75.0; // percent, configurable per FR05
+const NOTIFICATION_THRESHOLD = 70.0; // percent, configurable per FR05
 
 /**
  * Given attendance aggregated by raw date ('Y-m-d' => ['present'=>int,
