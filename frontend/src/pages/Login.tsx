@@ -41,9 +41,7 @@ export default function Login() {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 				>
-					<p className="font-display text-2xl font-semibold text-white">
-						Northumbria University London Campus
-					</p>
+					<p className="font-display text-2xl font-semibold text-white">NUL</p>
 					<p className="mt-1 text-sm text-ink-200">
 						Student Attendance Management System
 					</p>
