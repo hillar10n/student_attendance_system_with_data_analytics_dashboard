@@ -11,12 +11,11 @@ available from the command line.
 
 ### step 1. Start MySQL
 
-Open XAMPP Control Panel, click **Start** next to **MySQL** only (Apache isn't needed).
+Open XAMPP Control Panel, click **Start** next to **MySQL**
 
-### step 2. Create the database
+### step 2. Start Apache
 
-Open phpMyAdmin (click **Admin** next to MySQL), go to the **SQL** tab, paste in
-everything from `backend/schema.sql`, click **Go**.
+Open XAMPP Control Panel, click **Start** next to **Apache**
 
 ### step 3. Launch the backend
 
